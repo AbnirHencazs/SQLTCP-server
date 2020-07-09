@@ -58,9 +58,6 @@
             this.label13 = new System.Windows.Forms.Label();
             this.label9 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
-            this.serverParking = new System.Windows.Forms.Timer(this.components);
-            this.parche = new System.Windows.Forms.Timer(this.components);
-            this.timerGetDataAccesa = new System.Windows.Forms.Timer(this.components);
             this.timerServerSQL = new System.Windows.Forms.Timer(this.components);
             this.groupBoxMysql = new System.Windows.Forms.GroupBox();
             this.comboBoxComandos = new System.Windows.Forms.ComboBox();
@@ -71,7 +68,6 @@
             this.labelPing = new System.Windows.Forms.Label();
             this.timerPing = new System.Windows.Forms.Timer(this.components);
             this.labelPingError = new System.Windows.Forms.Label();
-            this.timerBarOpen = new System.Windows.Forms.Timer(this.components);
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -381,19 +377,6 @@
             this.label3.TabIndex = 70;
             this.label3.Text = "Desconexiones: ";
             // 
-            // serverParking
-            // 
-            this.serverParking.Interval = 5000;
-            this.serverParking.Tick += new System.EventHandler(this.serverParking_Tick);
-            // 
-            // parche
-            // 
-            this.parche.Tick += new System.EventHandler(this.parche_Tick);
-            // 
-            // timerGetDataAccesa
-            // 
-            this.timerGetDataAccesa.Tick += new System.EventHandler(this.timerGetDataAccesa_Tick);
-            // 
             // timerServerSQL
             // 
             this.timerServerSQL.Interval = 5000;
@@ -501,11 +484,6 @@
             this.labelPingError.TabIndex = 86;
             this.labelPingError.Text = "PingError = 0";
             // 
-            // timerBarOpen
-            // 
-            this.timerBarOpen.Interval = 5000;
-            this.timerBarOpen.Tick += new System.EventHandler(this.timerBarOpen_Tick);
-            // 
             // frmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -569,9 +547,6 @@
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label9;
         private System.Windows.Forms.Label label13;
-        private System.Windows.Forms.Timer serverParking;
-        private System.Windows.Forms.Timer parche;
-        private System.Windows.Forms.Timer timerGetDataAccesa;
         private System.Windows.Forms.Timer timerServerSQL;
         private System.Windows.Forms.GroupBox groupBoxMysql;
         private System.Windows.Forms.TextBox mysqlEventoText;
@@ -582,7 +557,6 @@
         private System.Windows.Forms.Label labelPing;
         private System.Windows.Forms.Timer timerPing;
         private System.Windows.Forms.Label labelPingError;
-        private System.Windows.Forms.Timer timerBarOpen;
     }
 }
 

@@ -39,27 +39,14 @@ namespace testerApp
         //Par el servicio socket
         public delegate void invokeDelegate();
         List<testApp.PIC> PICS = new List<testApp.PIC>();
-        //Para conexion del servidor de la appEstacionamientos
-        string serverIp = "192.168.1.99";
-        int serverPort = 123;
-        TcpClient client; // Creates a TCP Client
-        NetworkStream streamClient, streamRead; //Creats a NetworkStream (used for sending and receiving data)
         byte[] datalengthCliente = new byte[128]; // creates a new byte with length 4 ( used for receivng data's lenght)
-        //Para conexion del servidor de accesa
-        string serverIpAccesa = "accesawork.ddns.net";
-        int serverPortAccesa = 170;
-        TcpClient clientAccesa; // Creates a TCP Client
-        NetworkStream streamClientAccesa, streamReadAccesa;
-        byte[] datalengthClienteAccesa = new byte[128];
 
         //Variables de conexion
         bool picConectado = false;  //Pic conexion
-        string picIp = "192.168.1.5";
         Ping Pings = new Ping();
         int timeoutPing = 150;  //Valor en milisegundos
         int pingError = 0;
         const int timeMaxPingError = 1;  //En minutos
-        bool pingPic = false;
         bool resetearPic = false;
 
         //Crear objeto mysql
@@ -79,7 +66,7 @@ namespace testerApp
         bool isTpvValidadora;
 
         //Nuevas variables
-        string lastRegister = "";
+        
         int tiempoTol = 1;
 
         /******************************************************************************/
@@ -97,7 +84,6 @@ namespace testerApp
             //Lectura a la base de datos establecer conexion
             dbName = archivo.ReadLine();
             dbPassword = archivo.ReadLine();
-            picIp = archivo.ReadLine();
             showBoxes = archivo.ReadLine() == "alertDB" ? true : false;
             showGUI = archivo.ReadLine() == "hidden" ? true : false;
             bloquearComandosDB = archivo.ReadLine() == "blockDB" ? true : false;
@@ -114,13 +100,6 @@ namespace testerApp
             //Para mantener el socket abierto
             btnChangePort_Click(null, null);
             timer1.Enabled = true;
-
-            //Init combo box
-            //comboBoxComandos.SelectedIndex = 0;
-
-            //Conexion al servidor
-            //conectarApp(serverIp, serverPort);
-
             //Conexion a la database
             tabla.conectar(dbServer, dbUser, dbPassword, dbName);
             txtLog.Text += tabla.estatusReport;
@@ -177,72 +156,6 @@ namespace testerApp
                 //string mensaje = "Imposible Abrir el Puerto seleccionado, Es posible esté siendo ocupado por otro proceso...";
                 //MessageBox.Show("Error", mensaje, MessageBoxButtons.OK, MessageBoxIcon.Error, MessageBoxDefaultButton.Button1);
             }
-        }
-        /*********************************************************************************/
-        string encrypt_basic(string texto)
-        {
-            char[] cadena = texto.ToArray();
-            texto = "";
-
-            for (int cont = 0; cont < cadena.Length; cont++)
-            {
-                if (cadena[cont] == '0')
-                    cadena[cont] = '2';
-                else if (cadena[cont] == '1')
-                    cadena[cont] = '0';
-                else if (cadena[cont] == '2')
-                    cadena[cont] = '8';
-                else if (cadena[cont] == '3')
-                    cadena[cont] = '9';
-                else if (cadena[cont] == '4')
-                    cadena[cont] = '7';
-                else if (cadena[cont] == '5')
-                    cadena[cont] = '6';
-                else if (cadena[cont] == '6')
-                    cadena[cont] = '4';
-                else if (cadena[cont] == '7')
-                    cadena[cont] = '5';
-                else if (cadena[cont] == '8')
-                    cadena[cont] = '3';
-                else if (cadena[cont] == '9')
-                    cadena[cont] = '1';
-
-                texto += "" + cadena[cont];
-            }
-            return texto;
-        }
-        /*********************************************************************************/
-        string decrypt_basic(string texto)
-        {
-            char[] cadena = texto.ToArray();
-            texto = "";
-
-            for (int cont = 0; cont < cadena.Length; cont++)
-            {
-                if (cadena[cont] == '0')
-                    cadena[cont] = '1';
-                else if (cadena[cont] == '1')
-                    cadena[cont] = '9';
-                else if (cadena[cont] == '2')
-                    cadena[cont] = '0';
-                else if (cadena[cont] == '3')
-                    cadena[cont] = '8';
-                else if (cadena[cont] == '4')
-                    cadena[cont] = '6';
-                else if (cadena[cont] == '5')
-                    cadena[cont] = '7';
-                else if (cadena[cont] == '6')
-                    cadena[cont] = '5';
-                else if (cadena[cont] == '7')
-                    cadena[cont] = '4';
-                else if (cadena[cont] == '8')
-                    cadena[cont] = '2';
-                else if (cadena[cont] == '9')
-                    cadena[cont] = '3';
-
-                texto += "" + cadena[cont];
-            }
-            return texto;
         }
         /*********************************************************************************/
         bool parcheToServer(string texto, out string respuesta) {
@@ -843,7 +756,9 @@ namespace testerApp
         {
             byte[] datos = readStream(connection.Socket);
             string parcheText = "";
-
+            string IpRemitente = connection.Socket.Client.RemoteEndPoint.ToString();
+            string IpRemitenteSinPuerto = IpRemitente.Substring(0, 13);
+            
             //Si hay datos que procesar
             if (datos != null)
             {
@@ -888,53 +803,34 @@ namespace testerApp
                             //Verificamos el parche de datos
                             if (parcheToServer(datosTcp[i], out parcheText))
                             {
-                                if (picConectado || true)
-                                {
-                                    //Crear evento de insertar
-                                    string query = "insert into eventosPic (fechaRegistro, fechaAtencion, evento, estatus) values('" +
-                                                    DateTime.Now.ToString() + "','','" + parcheText + "','sin leer');";
-
-                                    //Escribo en la tabla si evento del pic
-                                    if (lastRegister != parcheText)
+                                //Crear evento de insertar
+                                string query = "insert into eventosPic (fechaRegistro, fechaAtencion, evento, estatus) values('" +
+                                                DateTime.Now.ToString() + "','','" + parcheText + "','sin leer');";
+                                //Encuentra al remitente (quien envio el mensaje)
+                                testApp.PIC remitente = PICS.Find(
+                                    delegate(testApp.PIC pic) 
                                     {
-                                        if (tabla.insertar(query))
-                                        {
-                                            lastRegister = parcheText;
-                                            tcpServer1.Send("<" + "SQL" + "WRT" + "1" + ">");
-                                        }
-                                        else
-                                        {
-                                            tcpServer1.Send("<" + "SQL" + "WRT" + "0" + ">");
-                                        }
+                                        return pic.DireccionIP == IpRemitenteSinPuerto;
+                                    }
+                                    );
+                                if(remitente.ultimoRegistro != parcheText)
+                                {
+                                    if (tabla.insertar(query))
+                                    {
+                                        remitente.ultimoRegistro = parcheText;
                                     }
                                     else
                                     {
-                                        txtLog.Text += "DB: DUPLICIDAD DE REGISTRO \r\n";
-                                        tcpServer1.Send("<" + "SQL" + "WRT" + "1" + ">");
+                                        //
                                     }
                                 }
-
+                                else
+                                {
+                                    txtLog.Text += "DB: DUPLICIDAD DE REGISTRO \r\n";
+                                }
+                                
                                 //Evento resultante
                                 txtLog.Text += tabla.estatusReport;
-
-                                //Renviar al servidor de la app
-                                //ClientSend(parchetext);
-
-                                //Retrasnmito al servidor accesa de mantenimiento
-                                /*
-                                if (clientAccesa != null)
-                                {
-                                    if (clientAccesa.Connected)
-                                    {
-                                        ClientAccesaSend(dataStr);
-                                    }
-                                }
-                                */
-                            }
-                            else
-                            {
-                                //El dato no tiene formato correcto, apunta al siguiente dato del buffer
-                                tcpServer1.Send("<" + "SQL" + "WRT" + "1" + ">");
                             }
                         }
                         else if (datosTcp[i].Length > 2)
@@ -1002,7 +898,7 @@ namespace testerApp
             Invoke(setText);
             string direccionIpPIC = connection.Socket.Client.RemoteEndPoint.ToString();
             string direccionIpPICsinPuerto = direccionIpPIC.Substring(0, 13);
-            PICS.Add(new testApp.PIC() { DireccionIP = direccionIpPICsinPuerto, IsConnected = true });
+            PICS.Add(new testApp.PIC() {Id = Guid.NewGuid().ToString() , DireccionIP = direccionIpPICsinPuerto, IsConnected = true });
         }
         /*********************************************************************************/
         private void timer1_Tick(object sender, EventArgs e)
@@ -1082,190 +978,43 @@ namespace testerApp
             catch (FormatException) { }
             catch (OverflowException) { }
         }
-        /*********************************************************************************/
-
-        //Rompe los puertos inactivos
-        private void timer3_Tick(object sender, EventArgs e)
-        {
-
-        }
         /***********************************************************/
         private void btn_clear(object sender, EventArgs e)
         {
             this.txtLog.Text = "";
         }
         /***********************************************************/
-        private void conectarApp(string ip, int puerto)
+        string encrypt_basic(string texto)
         {
-            try
+            char[] cadena = texto.ToArray();
+            texto = "";
+
+            for (int cont = 0; cont < cadena.Length; cont++)
             {
-                //client = new TcpClient("127.0.0.1", 123); //Trys to Connect
-                client = new TcpClient(ip, puerto); //Trys to Connect
-                txtLog.Text += "Conectado a la app" + "\r\n";
-                serverParking.Enabled = false;
-                //ClientReceive();
-                openTcpPort();
-      
+                if (cadena[cont] == '0')
+                    cadena[cont] = '2';
+                else if (cadena[cont] == '1')
+                    cadena[cont] = '0';
+                else if (cadena[cont] == '2')
+                    cadena[cont] = '8';
+                else if (cadena[cont] == '3')
+                    cadena[cont] = '9';
+                else if (cadena[cont] == '4')
+                    cadena[cont] = '7';
+                else if (cadena[cont] == '5')
+                    cadena[cont] = '6';
+                else if (cadena[cont] == '6')
+                    cadena[cont] = '4';
+                else if (cadena[cont] == '7')
+                    cadena[cont] = '5';
+                else if (cadena[cont] == '8')
+                    cadena[cont] = '3';
+                else if (cadena[cont] == '9')
+                    cadena[cont] = '1';
+
+                texto += "" + cadena[cont];
             }
-            catch (Exception ex)
-            {
-                //Si no pudo conectar activa timer para ser conectado
-                //MessageBox.Show(ex.Message); // Error handler :D
-            
-                serverParking.Enabled = true;
-                txtLog.Text += "Servidor no disponible: " + ex.Message + "\r\n";
-                if (tcpServer1.IsOpen)
-                {
-                    tcpServer1.Close();
-                }
-            }
-        }
-        public void ClientReceive()
-        {
-            int bytes;
-            streamClient = client.GetStream(); //Gets The Stream of The Connection
-            
-            new Thread(() => // Thread (like Timer)
-            {
-
-                while ((bytes = streamClient.Read(datalengthCliente, 0, datalengthCliente.Length)) != 0)//Keeps Trying to Receive the Size of the Message or Data
-                {
-                    
-                    // how to make a byte E.X byte[] examlpe = new byte[the size of the byte here] , i used BitConverter.ToInt32(datalength,0) cuz i received the length of the data in byte called datalength :D
-                  
-                        //txtLog.Text = "Datos: " + i + "\r\n";
-                        byte[] data = new byte[BitConverter.ToInt32(datalengthCliente, 0)]; // Creates a Byte for the data to be Received On
-                        streamClient.Read(data, 0, bytes); //Receives The Real Data not the Size
-                        this.Invoke((MethodInvoker)delegate // To Write the Received data
-                        {
-                            txtLog.Text += bytes + " ,Server : " + Encoding.Default.GetString(data) + "\r\n"; // Encoding.Default.GetString(data); Converts Bytes Received to String
-                        });
-                  
-
-                }
-                
-            }).Start(); // Start the Thread
-        }
-
-        private void serverParking_Tick(object sender, EventArgs e)
-        {
-            conectarApp(serverIp, serverPort);
-        }
-
-        public void ClientSend(string msg)
-        {
-            try
-            {
-                
-                if (client.Connected)
-                {
-                    streamClient = client.GetStream(); //Gets The Stream of The Connection
-                    byte[] data; // creates a new byte without mentioning the size of it cuz its a byte used for sending
-                    data = Encoding.Default.GetBytes(msg); // put the msg in the byte ( it automaticly uses the size of the msg )
-                    streamClient.Write(data, 0, data.Length); //Sends the real data
-                }
-                else
-                {
-                    txtLog.Text += "No hay conexion al server" + "\r\n";
-                    serverParking.Enabled = true;
-                }
-            }
-            catch (Exception ex)
-            {
-                txtLog.Text += "Se cayo el servidor: " + ex.Message + "\r\n";
-                tcpServer1.Close();
-            }
-        }
-
-        private void parche_Tick(object sender, EventArgs e)
-        {
-            int bytes = 0;
-            string comandoServer;
-            char[] delimitador = new char[]{','};
-
-            try
-            {
-                //Si hay datos por tcp
-                if (client == null)
-                    return;
-
-                if (client.Available != 0)
-                {
-                    streamRead = client.GetStream(); //Gets The Stream of The Connection
-                    bytes = streamRead.Read(datalengthCliente, 0, client.Available);
-                    datalengthCliente[bytes] = 0; //Final de cadena
-                    //Mostrar lo que recibi
-                    comandoServer = Encoding.ASCII.GetString(datalengthCliente, 0, bytes);
-                    txtLog.Text += "R: " + comandoServer.Length + " ,Server : " + comandoServer + "\r\n";
-
-                }
-            }
-            catch 
-            { 
-                //Sin funcion 
-            }
-        }
-        /********************************************************************************************************************/
-        private void AccesaClose_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void timerGetDataAccesa_Tick(object sender, EventArgs e)
-        {
-            int bytes = 0;
-            string comandoServer;
-
-            try
-            {
-                //Si hay datos por tcp
-                if (clientAccesa == null)
-                    return;
-
-                if (clientAccesa.Available != 0)
-                {
-                    streamReadAccesa = clientAccesa.GetStream(); //Gets The Stream of The Connection
-                    bytes = streamReadAccesa.Read(datalengthClienteAccesa, 0, clientAccesa.Available);
-                    datalengthClienteAccesa[bytes] = 0; //Final de cadena
-                    //Mostrar lo que recibi
-                    comandoServer = Encoding.ASCII.GetString(datalengthClienteAccesa, 0, bytes);
-                    txtLog.Text += "R: " + comandoServer.Length + " ,Accesa : " + comandoServer + "\r\n";
-
-                    if (bytes > 1)
-                    {
-                        comandoServer.Replace("!", "");
-                        tcpServer1.Send(comandoServer);
-                        ClientAccesaSend("Recibido");
-
-                    }
-                }
-            }
-            catch 
-            { 
-                //Sin funcion 
-            }
-        }
-
-        public void ClientAccesaSend(string msg)
-        {
-            try
-            {
-                if (clientAccesa.Connected)
-                {
-                    streamClientAccesa = clientAccesa.GetStream(); //Gets The Stream of The Connection
-                    byte[] data; // creates a new byte without mentioning the size of it cuz its a byte used for sending
-                    data = Encoding.Default.GetBytes(msg); // put the msg in the byte ( it automaticly uses the size of the msg )
-                    streamClientAccesa.Write(data, 0, data.Length); //Sends the real data
-                }
-                else
-                {
-                    txtLog.Text += "No hay conexion al server Accesa" + "\r\n";
-                }
-            }
-            catch (Exception ex)
-            {
-                txtLog.Text += "Se cayo el servidor Accesa: " + ex.Message + "\r\n";
-            }
+            return texto;
         }
         /*********************************************************************************/
         /************************************* MYSQL *************************************/
@@ -1368,13 +1117,11 @@ namespace testerApp
                         Console.WriteLine("Ping respondido de: " + PIC.DireccionIP);
                         labelPing.Text = "Ping: " + ping.RoundtripTime + "ms";
                         PIC.Ping = true;
-                        pingPic = true;
                     }
                     else
                     {
                         labelPing.Text = "Ping: -ms";
                         PIC.Ping = false;
-                        pingPic = false;
                         pingError++;
                     }   
                 }
@@ -1424,13 +1171,6 @@ namespace testerApp
         private void comboBoxComandos_SelectedValueChanged(object sender, EventArgs e)
         {
 
-        }
-
-        private void timerBarOpen_Tick(object sender, EventArgs e)
-        {
-            //MessageBox.Show("Tam: " + barrerasAbbiertas.Count + "  Texto:" + barrerasAbbiertas[0]);
-
-            //for(int i = 0; i < maxRegisterAccesos; i++)
         }
     }
 }
