@@ -46,8 +46,8 @@ namespace testerApp
         Ping Pings = new Ping();
         int timeoutPing = 150;  //Valor en milisegundos
         int pingError = 0;
-        const int timeMaxPingError = 1;  //En minutos
-        bool resetearPic = false;
+        //const int timeMaxPingError = 1;  //En minutos
+        //bool resetearPic = false;
 
         //Crear objeto mysql
         testApp.tableMysql tabla = new testApp.tableMysql();
@@ -169,17 +169,8 @@ namespace testerApp
 
             if (texto.StartsWith("<PEN"))
             {
-                if (texto.Contains("REG") && tam >= "<PEN6C2AE3REG>".Length)
-                {   //<PEN6C2AE3REGREGISTRADO> FORMATO: SAVE123456789   
-                    //respuesta = "SAVED" + "0000" + texto.Substring(4, 6) + ",";
-                    //tarjeta = Convert.ToInt32(texto.Substring(4, 6), 16).ToString();
-                    //txtLog.Text += "PENSIONADO: " + tarjeta + "\r\n";
-                }
-                else if (texto.Contains("VIG") && tam >= "<PENC8C81BVIG>".Length)
-                {   //<PENC8C81BVIGMODIFICADO>    
-                    //respuesta = "SAVED" + "0000" + texto.Substring(4, 6) + "X" + ",";
-                }
-                else if (tam >= "<PENC8C81B120006290818NNPNE01>".Length)
+                
+                if (tam >= "<PENC8C81B120006290818NNPNE01>".Length)
                 {   //Evento por pensionado
                     //Retransmitir <PEN+C8C81B+12+00+06+29+08+18+NNPN+E01> == 1E-0000E43E0C0001, PENSIONADO0000E43E0C28-08-18-12-25-14/E10001
                     tarjeta = "0000" + texto.Substring(4, 6);
@@ -204,18 +195,8 @@ namespace testerApp
                     respuesta = "PENSIONADO" + tarjeta + fecha + "/" + entrada + estatus + ",";
                     //Respuesta
                     txtLog.Text += respuesta + "\r\n";
-                    /*
-                    //Añado acceso
-                    capturar = texto.Substring("<PENC8C81B".Length, 6);
-                    capturar += texto.Substring("<PENC8C81B120006290818NNPN".Length, 3);
-                    accesosPermitidos.RemoveAt(0);
-                    accesosPermitidos.Add(capturar); //Añade al final el primer item 
-                     */
+                    
                 }
-            }
-            else if (texto.StartsWith("<PRE"))
-            {
-
             }
             else if (texto.StartsWith("<IDX"))
             {
@@ -453,14 +434,13 @@ namespace testerApp
                     entrada += (entrada == "E" ? ((nodo + 1) / 2) : nodo / 2);
 
                     respuesta = "SOPORTETAR" + tarjeta + fecha + "/" + entrada + "1000" + ",";
-                    //respuesta = "SOPORTE:" + "0000" + texto.Substring("<SOP".Length, 6) + texto.Substring("<SOP4CAE53".Length, 12);
-                    //respuesta += (texto.Substring("<SOP4CAE53155923291018".Length, 1) == "E" ? "E" : "S") + Convert.ToInt32(texto.Substring("<SOP4CAE53155923291018E".Length, 2), 16);
+                    
                     txtLog.Text += respuesta + "\r\n";
                 }
             } else if (texto.StartsWith("<INIRST")) {
                 //respuesta = "PIC RESET";
                 txtLog.Text += "PIC RESETADO" + "\r\n";
-                resetearPic = false;
+                
             }
             else if (texto.StartsWith("<CONT"))
             {
@@ -1120,6 +1100,7 @@ namespace testerApp
                     }
                     else
                     {
+                        txtLog.Text += "Ping fallido de: " + PIC.DireccionIP;
                         labelPing.Text = "Ping: -ms";
                         PIC.Ping = false;
                         pingError++;
@@ -1127,7 +1108,7 @@ namespace testerApp
                 }
                 //Mostrar errores del ping
                 labelPingError.Text = "PingError = " + pingError;
-
+                /*
                 //Si el ping sobrepasa la tasa predetermina resetea
                 if (pingError >= timeMaxPingError * 60)  //Acumulo un minuto de error
                 {
@@ -1145,7 +1126,7 @@ namespace testerApp
                         txtLog.Text += "MANDAR RESET AL PIC \r\n";
                         tcpServer1.Send("<TPVRST>");
                     }
-                }
+                }*/
             }
             catch (Exception)
             {
