@@ -1091,6 +1091,7 @@ namespace testerApp
                 
                 foreach (testApp.PIC PIC in PICS)
                 {
+                    
                     PingReply ping = Pings.Send(PIC.DireccionIP, timeoutPing);
                     if(ping.Status == IPStatus.Success)
                     {
@@ -1100,7 +1101,7 @@ namespace testerApp
                     }
                     else
                     {
-                        txtLog.Text += "Ping fallido de: " + PIC.DireccionIP;
+                        
                         labelPing.Text = "Ping: -ms";
                         PIC.Ping = false;
                         pingError++;
