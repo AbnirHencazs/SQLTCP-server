@@ -877,7 +877,8 @@ namespace testerApp
             };
             Invoke(setText);
             string direccionIpPIC = connection.Socket.Client.RemoteEndPoint.ToString();
-            string direccionIpPICsinPuerto = direccionIpPIC.Substring(0, 13);
+            int indicePuerto = direccionIpPIC.IndexOf(':');
+            string direccionIpPICsinPuerto = direccionIpPIC.Substring(0, indicePuerto);
             PICS.Add(new testApp.PIC() {Id = Guid.NewGuid().ToString() , DireccionIP = direccionIpPICsinPuerto, IsConnected = true });
         }
         /*********************************************************************************/
