@@ -444,7 +444,7 @@ namespace testerApp
             }
             else if (texto.StartsWith("<CONT"))
             {
-                string contadorID, conteoEntran, conteoSalen, conteoBloqueos, conteoTotal;
+                string contadorID, conteoEntran, conteoSalen, conteoBloqueos, conteoTotal, e_s;
                 //if(texto.Length >= "<CONTXXE:XXXX/S:XXXX/B:XXXX/T:XXXX>".Length)
                 //{
                 contadorID = texto.Substring(5, 2);
@@ -452,7 +452,8 @@ namespace testerApp
                 conteoSalen = texto.Substring(16, 4);
                 conteoBloqueos = texto.Substring(23, 4);
                 conteoTotal = texto.Substring(30, 4);
-                respuesta = "<CONT" + contadorID + "E:" + conteoEntran + "/" + "S:" + conteoSalen + "/" + "B:" + conteoBloqueos + "/" + "T:" + conteoTotal + ">";
+                e_s = texto.Substring(34, 1);
+                respuesta = "<CONT" + contadorID + "E:" + conteoEntran + "/" + "S:" + conteoSalen + "/" + "B:" + conteoBloqueos + "/" + "T:" + conteoTotal + e_s + ">";
                 txtLog.Text += respuesta + "\r\n";
                 //}
             }
