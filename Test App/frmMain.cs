@@ -636,6 +636,10 @@ namespace testerApp
             {
                 result = "<BORRAR_ALL>";
             }
+            else if (comandoServer.StartsWith("CUPODISPONIBLE"))
+            {
+                result = "<CUPODISPONIBLE>";
+            }
 
 
             //Condicion de datos
@@ -1013,13 +1017,13 @@ namespace testerApp
         /*********************************************************************************/
         private void buttonEmularSQL_Click(object sender, EventArgs e)
         {
-            tabla.insertar("insert into eventosPC (fechaRegistro, fechaAtencion, evento, estatus) values('now()','','" + mysqlEventoText.Text + "','sin leer')");
+            tabla.insertar("insert into eventosPC (fechaRegistro, fechaAtencion, evento, estatus) values(now(),'','" + mysqlEventoText.Text + "','sin leer')");
             txtLog.Text += "Registrando para pc: " + tabla.estatusReport;
         }
         /*********************************************************************************/
         private void comboBoxComandos_SelectedIndexChanged(object sender, EventArgs e)
         {
-            tabla.insertar("insert into eventosPC (fechaRegistro, fechaAtencion, evento, estatus) values('now()','','" + comboBoxComandos.Text + "','sin leer')");
+            tabla.insertar("insert into eventosPC (fechaRegistro, fechaAtencion, evento, estatus) values(now(),'','" + comboBoxComandos.Text + "','sin leer')");
             txtLog.Text += "Registrando para pc: " + tabla.estatusReport;
         }
         /*********************************************************************************/
@@ -1045,6 +1049,14 @@ namespace testerApp
                                         tabla.update("update eventosPC set fechaAtencion = '" + DateTime.Now.ToString() + "', estatus = 'leido' where id = " + id);
                                         txtLog.Text += "DB: Evento actualizado \r\n";
                                         tcpServer1.Send("BORRAR_ALL");
+                                        eventoPC = true;
+                                        return;
+                                    }
+                                    else if(auxParche == "<CUPODISPONIBLE>")
+                                    {
+                                        tabla.update("update eventosPC set fechaAtencion = '" + DateTime.Now.ToString() + "', estatus = 'leido' where id = " + id);
+                                        txtLog.Text += "DB: Evento abre puerta\n";
+                                        tcpServer1.Send("ABRIR_ENT1");
                                         eventoPC = true;
                                         return;
                                     }
